@@ -1,98 +1,74 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Nexus Orders API — Gestión experimental de pedidos
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend en **NestJS 11 y TypeScript** orientado a registrar pedidos, consultar el listado y actualizar su estado. Incluye entidades de dominio, casos de uso, controladores HTTP y persistencia local mediante **TypeORM con SQLite**.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+> **Estado:** prototipo académico/técnico de API. **No es un backend multiempresa validado**, no dispone de autenticación ni autorización suficientes para exponerlo a Internet y su instalación reproducible está bloqueada actualmente por un archivo de dependencias inconsistente.
 
-## Description
+## Alcance presente en el código
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Operación | Endpoint | Estado de implementación |
+|---|---|---|
+| Crear pedido | `POST /orders` | Controlador que invoca `CreateOrderUseCase` |
+| Listar pedidos | `GET /orders` | Consulta al repositorio |
+| Completar pedido | `PATCH /orders/:id/complete` | Modifica estado de forma directa; requiere validación de reglas de dominio |
 
-## Project setup
+La API no debe interpretarse como una plataforma de pagos, facturación o e-commerce productiva.
 
-```bash
-$ npm install
+## Arquitectura
+
+```mermaid
+flowchart LR
+    A[Cliente HTTP] --> B[OrderController]
+    B --> C[Casos de uso]
+    C --> D[Dominio Order]
+    C --> E[Repositorio]
+    E --> F[(SQLite / TypeORM)]
 ```
 
-## Compile and run the project
+| Carpeta | Función |
+|---|---|
+| [`src/domain/`](src/domain/) | Entidades y reglas de dominio |
+| [`src/application/`](src/application/) | Casos de uso y DTO |
+| [`src/presentation/`](src/presentation/) | Controladores REST |
+| [`src/infrastructure/`](src/infrastructure/) | Adaptadores de persistencia |
+| [`test/`](test/) | Configuración de pruebas de extremo a extremo |
+| [`docs/`](docs/) | Revisión técnica, riesgos y evolución |
+
+## Instalación y ejecución local
+
+Requiere Node.js compatible con NestJS 11 y npm. El procedimiento esperado una vez reparado el lockfile es:
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm ci
+npm run start:dev
 ```
 
-## Run tests
+Por configuración local, la API suele escuchar en `http://localhost:3000`; verificar `src/main.ts` y variables de entorno antes de usarla. La base SQLite es local, no un servicio productivo.
+
+**Bloqueo comprobado:** GitHub Actions falla en `npm ci` porque `package-lock.json` no está sincronizado con dependencias `@emnapi/*`. **No se han ejecutado automáticamente el build ni los tests posteriores a ese fallo.** Ver [issue #2](https://github.com/andres-olguin/nexus-orders-api/issues/2) y [PR de estabilización #1](https://github.com/andres-olguin/nexus-orders-api/pull/1).
+
+## Comprobaciones disponibles en package.json
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm test -- --runInBand
+npm run build
+npm run test:e2e
 ```
 
-## Deployment
+Estos son comandos definidos en el repositorio; **su presencia no demuestra resultado satisfactorio** hasta resolver primero la instalación y ejecutarlos.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Riesgos críticos antes de un piloto
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+- `synchronize: true` de TypeORM puede modificar el esquema automáticamente: sustituir por migraciones versionadas.
+- El endpoint para completar pedidos escribe `COMPLETED` directamente, sin aplicar todas las transiciones de estado del dominio.
+- Faltan controles consistentes de autenticación, permisos y eventual aislamiento multiempresa.
+- Validar cantidades, valores, clientes, errores, condiciones de carrera y acceso a pedidos por ID.
+- Añadir pruebas de contratos API y seguridad antes de integrar con el dashboard.
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Frontend relacionado y hoja de ruta
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+El panel está en [`nexus-orders-dashboard`](https://github.com/andres-olguin/nexus-orders-dashboard). Ambos proyectos necesitan un contrato HTTP compartido y configuración de CORS cuando se ejecutan en puertos distintos.
 
-## Resources
+[Revisión de ingeniería](docs/ENGINEERING_REVIEW_2026-11-04.md) · [Arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
 
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**Privacidad y estado comercial:** utilizar datos ficticios. No introducir pedidos de clientes reales ni afirmar disponibilidad de producción.
