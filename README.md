@@ -69,6 +69,6 @@ Estos son comandos definidos en el repositorio; **su presencia no demuestra resu
 
 El panel está en [`nexus-orders-dashboard`](https://github.com/andres-olguin/nexus-orders-dashboard). Ambos proyectos necesitan un contrato HTTP compartido y configuración de CORS cuando se ejecutan en puertos distintos.
 
-[Revisión de ingeniería](docs/ENGINEERING_REVIEW_2026-11-04.md) · [Arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
+[Revisión de ingeniería propuesta — PR #1](https://github.com/andres-olguin/nexus-orders-api/pull/1) · [Arquitectura y escalabilidad](docs/ARCHITECTURE_SCALABILITY_2026-11-04.md).
 
 **Privacidad y estado comercial:** utilizar datos ficticios. No introducir pedidos de clientes reales ni afirmar disponibilidad de producción.
